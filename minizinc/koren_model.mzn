@@ -4,6 +4,7 @@ include "globals.mzn";
 /*
  Data
 */
+int: demand = 1;
 int: number_of_stages;
 array[1..number_of_stages] of int: stage2machineCount;      %machine count per stage
 array[1..number_of_stages] of int: stage2machineCountMax;      %max machine count per stage
@@ -32,12 +33,16 @@ function var int : taskCost(var opt int: taskId) = let {
 } 
 in sum([1 | b in 1..number_of_characteristics  where chars[b]=true]);
 
-function var int : stageValue(var opt int: stageId) = let {
+function var int : stageEfficiency(var opt int: stageId) = let {
   array[1..number_of_characteristics] of var opt bool: chars = [stage2char[stageId,x] | x in 1..number_of_characteristics]
-} in sum([1 | b in chars where b=false])*stage2machineCount[stageId]+stage2machineCountDelta[stageId]*2;
+} in (sum([1 | b in chars where b=false])+1)*(stage2machineCount[stageId]+stage2machineCountDelta[stageId]);
 
 predicate CanDo(int : s, array[int] of var opt int: tasks) = 
-sum([taskCost(t)| t in tasks]) <= stageValue(s);
+sum([taskCost(t)| t in tasks]) <= stageEfficiency(s);
+
+function var int: StageSpeedOnTasks(int : s, array[int] of var opt int: tasks) =
+  stageEfficiency(s) div sum([taskCost(t)| t in tasks]);
+
 /*
 Constraints
 */
@@ -50,7 +55,7 @@ constraint forall (s in 1..number_of_stages)(
 
 %pred constraint
 constraint forall (t,tt in 1..number_of_tasks)(
-  task2succtask[t,tt] -> (task2stage[t] <= task2stage[tt]) 
+  task2succtask[t,tt] -> (task2stage[t] <= task2stage[tt]) % try *
 );
 
 %characteristic constaint
@@ -59,12 +64,18 @@ constraint forall(t in 1..number_of_tasks)(
               task2char[t,c] -> stage2char[task2stage[t],c]
 ));
 
-%limit number of tasks on a stage
-constraint forall(s in 1..number_of_stages)(
-  CanDo(s,Tasks_Of_Stage(s))
-);
+% %limit number of tasks on a stage
+% constraint forall(s in 1..number_of_stages)(
+%   CanDo(s,Tasks_Of_Stage(s))
+% );
+
+%Demand Constraint
+constraint let {
+    array[int] of var int : times = [StageSpeedOnTasks(s,Tasks_Of_Stage(s)) | s in 1..number_of_stages]
+} in min(times)*10000 > demand;
 
 /*
 Objective
 */
-solve minimize sum(stage2machineCount)+sum(stage2machineCountDelta)
+solve minimize sum(stage2machineCount)+sum(stage2machineCountDelta);
+% solve ::int_search(stage2machineCountDelta, smallest, indomain_max) satisfy;
