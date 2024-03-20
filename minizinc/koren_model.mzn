@@ -37,8 +37,8 @@ function var int : stageEfficiency(var opt int: stageId) = let {
   array[1..number_of_characteristics] of var opt bool: chars = [stage2char[stageId,x] | x in 1..number_of_characteristics]
 } in (sum([1 | b in chars where b=false])+1)*(stage2machineCount[stageId]+stage2machineCountDelta[stageId]);
 
-predicate CanDo(int : s, array[int] of var opt int: tasks) = 
-sum([taskCost(t)| t in tasks]) <= stageEfficiency(s);
+% predicate CanDo(int : s, array[int] of var opt int: tasks) = 
+% sum([taskCost(t)| t in tasks]) <= stageEfficiency(s);
 
 function var int: StageSpeedOnTasks(int : s, array[int] of var opt int: tasks) =
   stageEfficiency(s) div sum([taskCost(t)| t in tasks]);

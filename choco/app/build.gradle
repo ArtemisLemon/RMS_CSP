@@ -18,12 +18,12 @@ repositories {
 
 dependencies {
     // Use JUnit Jupiter for testing.
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+    // testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
 
     // This dependency is used by the application.
     implementation group: 'org.javatuples', name: 'javatuples', version: '1.2'
     // https://mvnrepository.com/artifact/org.choco-solver/choco-solver
-    implementation group: 'org.choco-solver', name: 'choco-solver', version: '4.10.8'
+    implementation group: 'org.choco-solver', name: 'choco-solver', version: '4.10.14'
 }
 
 application {
